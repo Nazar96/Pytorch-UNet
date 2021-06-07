@@ -45,7 +45,7 @@ class CustomUNet(pl.LightningModule):
             filters: int = 16,
             num_layers: int = 4,
             bilinear: bool = False,
-            learning_rate = 0.001
+            learning_rate = 0.1
     ):
         super().__init__()
         self.num_channels = num_channels
@@ -100,7 +100,7 @@ class CustomUNet(pl.LightningModule):
         logits = self.deconv(emb, emb_list)
         y_hat = self.output_activation(logits)
         loss = F.mse_loss(y_hat, y)
-        # self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
+        self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
         tensorboard_logs = {
             'train_loss': loss,
         }
@@ -109,7 +109,7 @@ class CustomUNet(pl.LightningModule):
             'loss': loss,
             'log': tensorboard_logs,
         }
-        return result
+        return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
@@ -117,7 +117,7 @@ class CustomUNet(pl.LightningModule):
         logits = self.deconv(emb, emb_list)
         y_hat = self.output_activation(logits)
         loss = F.mse_loss(y_hat, y)
-        # self.log('test_loss', loss, on_step=True, on_epoch=True, prog_bar=False, logger=True)
+        self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         tensorboard_logs = {
             'val_loss': loss,
         }
@@ -126,7 +126,7 @@ class CustomUNet(pl.LightningModule):
             'val_loss': loss,
             'log': tensorboard_logs,
         }
-        return result
+        return loss
 
     def test_step(self, batch, batch_idx):
         return self.validation_step(batch, batch_idx)
@@ -136,7 +136,10 @@ class CustomUNet(pl.LightningModule):
         lr_scheduler = {'scheduler': torch.optim.lr_scheduler.ReduceLROnPlateau(
                                         optimizer,
                                         verbose=True,
+                                        factor=0.5,
+                                        patience=20,
                                     ),
+                        'monitor': 'val_loss',
                         'name': 'learning_rate',
                         'interval': 'step',
                         'frequency': 1}
