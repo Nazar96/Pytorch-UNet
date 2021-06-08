@@ -129,7 +129,7 @@ class TableMaskDataset(Dataset):
         back_rand = choice(self.back_labels)
         back_path = os.path.join(self.background_dir, back_rand)
         back = cv2.imread(back_path)
-        back = self.background_transform(back=back)['back']
+        back = self.background_transform(image=back)['image']
         result = np.mean([back, img], axis=0).astype(np.uint8)
         return result
 
