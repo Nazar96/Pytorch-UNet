@@ -1,3 +1,5 @@
+albumentations
+opencv-python
 matplotlib
 numpy
 Pillow
