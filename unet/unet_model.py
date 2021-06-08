@@ -2,14 +2,16 @@
 
 from .unet_parts import *
 import pytorch_lightning as pl
+from .loss import supported_loss
 
 
 class UNet(nn.Module):
-    def __init__(self, n_channels, n_classes, bilinear=True):
+    def __init__(self, n_channels, n_classes, loss='bce', bilinear=True):
         super(UNet, self).__init__()
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.bilinear = bilinear
+        self.loss = supported_loss[loss]
 
         self.inc = DoubleConv(n_channels, 64)
         self.down1 = Down(64, 128)
@@ -99,7 +101,7 @@ class CustomUNet(pl.LightningModule):
         emb, emb_list = self.conv(x)
         logits = self.deconv(emb, emb_list)
         y_hat = self.output_activation(logits)
-        loss = F.mse_loss(y_hat, y)
+        loss = self.loss(y_hat, y)
         self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
         tensorboard_logs = {
             'train_loss': loss,
@@ -116,7 +118,7 @@ class CustomUNet(pl.LightningModule):
         emb, emb_list = self.conv(x)
         logits = self.deconv(emb, emb_list)
         y_hat = self.output_activation(logits)
-        loss = F.mse_loss(y_hat, y)
+        loss = self.loss(y_hat, y)
         self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         tensorboard_logs = {
             'val_loss': loss,
