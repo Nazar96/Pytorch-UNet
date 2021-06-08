@@ -45,7 +45,7 @@ class CustomUNet(pl.LightningModule):
             filters: int = 16,
             num_layers: int = 4,
             bilinear: bool = False,
-            learning_rate = 0.1
+            learning_rate = 0.01
     ):
         super().__init__()
         self.num_channels = num_channels
@@ -117,7 +117,7 @@ class CustomUNet(pl.LightningModule):
         logits = self.deconv(emb, emb_list)
         y_hat = self.output_activation(logits)
         loss = F.mse_loss(y_hat, y)
-        self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         tensorboard_logs = {
             'val_loss': loss,
         }
@@ -137,11 +137,11 @@ class CustomUNet(pl.LightningModule):
                                         optimizer,
                                         verbose=True,
                                         factor=0.5,
-                                        patience=20,
+                                        patience=2,
                                     ),
                         'monitor': 'val_loss',
                         'name': 'learning_rate',
-                        'interval': 'step',
+                        'interval': 'epoch',
                         'frequency': 1}
 
         return [optimizer], [lr_scheduler]
