@@ -6,12 +6,11 @@ from .loss import supported_loss
 
 
 class UNet(nn.Module):
-    def __init__(self, n_channels, n_classes, loss='bce', bilinear=True):
+    def __init__(self, n_channels, n_classes, bilinear=True):
         super(UNet, self).__init__()
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.bilinear = bilinear
-        self.loss = supported_loss[loss]
 
         self.inc = DoubleConv(n_channels, 64)
         self.down1 = Down(64, 128)
@@ -46,8 +45,9 @@ class CustomUNet(pl.LightningModule):
             num_classes: int = 1,
             filters: int = 16,
             num_layers: int = 4,
+            loss: str = 'bce',
             bilinear: bool = False,
-            learning_rate = 0.01
+            learning_rate: float = 0.01,
     ):
         super().__init__()
         self.num_channels = num_channels
@@ -56,6 +56,7 @@ class CustomUNet(pl.LightningModule):
         self.num_layers = num_layers
         self.filters = filters
         self.learning_rate = learning_rate
+        self.loss = supported_loss[loss]
 
         self.inc = DoubleConv(self.num_channels, self.filters)
         self.outc = OutConv(self.filters, self.num_classes)
@@ -136,14 +137,14 @@ class CustomUNet(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
         lr_scheduler = {'scheduler': torch.optim.lr_scheduler.ReduceLROnPlateau(
-                                        optimizer,
-                                        verbose=True,
-                                        factor=0.5,
-                                        patience=2,
-                                    ),
-                        'monitor': 'val_loss',
-                        'name': 'learning_rate',
-                        'interval': 'epoch',
-                        'frequency': 1}
+            optimizer,
+            verbose=True,
+            factor=0.5,
+            patience=2,
+        ),
+            'monitor': 'val_loss',
+            'name': 'learning_rate',
+            'interval': 'epoch',
+            'frequency': 1}
 
         return [optimizer], [lr_scheduler]
