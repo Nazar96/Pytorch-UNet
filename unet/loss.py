@@ -31,8 +31,25 @@ def dice_bce_loss(inputs, targets, smooth=1):
     return Dice_BCE
 
 
+def dice_mse_loss(inputs, targets, smooth=1):
+    # comment out if your model contains a sigmoid or equivalent activation layer
+    # inputs = F.sigmoid(inputs)
+
+    # flatten label and prediction tensors
+    inputs = inputs.view(-1)
+    targets = targets.view(-1)
+
+    intersection = (inputs * targets).sum()
+    dice_loss = 1 - (2. * intersection + smooth) / (inputs.sum() + targets.sum() + smooth)
+    MSE = F.mse_loss(inputs, targets, reduction='mean')
+    Dice_MSE = MSE + dice_loss
+
+    return Dice_MSE
+
+
 supported_loss = {
     'bce': F.binary_cross_entropy,
     'mse': F.mse_loss,
     'dice_bce': dice_bce_loss,
+    'dice_mse': dice_mse_loss,
 }
