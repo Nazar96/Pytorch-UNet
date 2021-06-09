@@ -56,7 +56,7 @@ class CustomUNet(pl.LightningModule):
         self.num_layers = num_layers
         self.filters = filters
         self.learning_rate = learning_rate
-        self.loss = supported_loss[loss]
+        self.loss_name = loss
 
         self.inc = DoubleConv(self.num_channels, self.filters)
         self.outc = OutConv(self.filters, self.num_classes)
@@ -102,7 +102,7 @@ class CustomUNet(pl.LightningModule):
         emb, emb_list = self.conv(x)
         logits = self.deconv(emb, emb_list)
         y_hat = self.output_activation(logits)
-        loss = self.loss(y_hat, y)
+        loss = supported_loss[self.loss](y_hat, y)
         self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
         tensorboard_logs = {
             'train_loss': loss,
@@ -119,7 +119,7 @@ class CustomUNet(pl.LightningModule):
         emb, emb_list = self.conv(x)
         logits = self.deconv(emb, emb_list)
         y_hat = self.output_activation(logits)
-        loss = self.loss(y_hat, y)
+        loss = supported_loss[self.loss](y_hat, y)
         self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         tensorboard_logs = {
             'val_loss': loss,

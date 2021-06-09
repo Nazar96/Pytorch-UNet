@@ -2,49 +2,44 @@ from torch.nn import functional as F
 
 
 def dice_loss(inputs, targets, smooth=1):
-    # comment out if your model contains a sigmoid or equivalent activation layer
-    # inputs = F.sigmoid(inputs)
-
-    # flatten label and prediction tensors
     inputs = inputs.view(-1)
     targets = targets.view(-1)
 
     intersection = (inputs * targets).sum()
-    dice = (2. * intersection + smooth) / (inputs.sum() + targets.sum() + smooth)
+    result = 1 - (2. * intersection + smooth) / (inputs.sum() + targets.sum() + smooth)
+    return result
 
-    return 1 - dice
+
+def iou_loss(self, inputs, targets, smooth=1):
+    inputs = inputs.view(-1)
+    targets = targets.view(-1)
+
+    intersection = (inputs * targets).sum()
+    total = (inputs + targets).sum()
+    union = total - intersection
+
+    result = 1 - (intersection + smooth) / (union + smooth)
+    return result
 
 
 def dice_bce_loss(inputs, targets, smooth=1):
-    # comment out if your model contains a sigmoid or equivalent activation layer
-    # inputs = F.sigmoid(inputs)
-
-    # flatten label and prediction tensors
     inputs = inputs.view(-1)
     targets = targets.view(-1)
 
-    intersection = (inputs * targets).sum()
-    dice_loss = 1 - (2. * intersection + smooth) / (inputs.sum() + targets.sum() + smooth)
+    DICE = dice_loss(inputs, targets, smooth)
     BCE = F.binary_cross_entropy(inputs, targets, reduction='mean')
-    Dice_BCE = BCE + dice_loss
-
-    return Dice_BCE
+    result = BCE + DICE
+    return result
 
 
 def dice_mse_loss(inputs, targets, smooth=1):
-    # comment out if your model contains a sigmoid or equivalent activation layer
-    # inputs = F.sigmoid(inputs)
-
-    # flatten label and prediction tensors
     inputs = inputs.view(-1)
     targets = targets.view(-1)
 
-    intersection = (inputs * targets).sum()
-    dice_loss = 1 - (2. * intersection + smooth) / (inputs.sum() + targets.sum() + smooth)
+    DICE = dice_loss(inputs, targets, smooth)
     MSE = F.mse_loss(inputs, targets, reduction='mean')
-    Dice_MSE = MSE + dice_loss
-
-    return Dice_MSE
+    result = MSE + DICE
+    return result
 
 
 supported_loss = {
@@ -52,4 +47,6 @@ supported_loss = {
     'mse': F.mse_loss,
     'dice_bce': dice_bce_loss,
     'dice_mse': dice_mse_loss,
+    'dice': dice_loss,
+    'iou': iou_loss,
 }
