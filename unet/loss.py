@@ -10,7 +10,7 @@ def dice_loss(inputs, targets, smooth=1):
     return result
 
 
-def iou_loss(self, inputs, targets, smooth=1):
+def iou_loss(inputs, targets, smooth=1):
     inputs = inputs.view(-1)
     targets = targets.view(-1)
 
