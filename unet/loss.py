@@ -59,4 +59,5 @@ supported_loss = {
     'dice_mse': dice_mse_loss,
     'dice': dice_loss,
     'iou': iou_loss,
+    'iou_bce': iou_bce_loss,
 }
