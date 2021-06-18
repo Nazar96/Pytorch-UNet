@@ -5,6 +5,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+def pad_size(f, w=None, s=1):
+    if s == 1:
+        res = (f - 1)/2
+    else:
+        res = (w * s - w - s + f) / 2
+    res = int(res)
+    return res
+
+
 class DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""
 
@@ -53,7 +62,6 @@ class Up(nn.Module):
             self.up = nn.ConvTranspose2d(in_channels , in_channels // 2, kernel_size=2, stride=2)
             self.conv = DoubleConv(in_channels, out_channels)
 
-
     def forward(self, x1, x2):
         x1 = self.up(x1)
         # input is CHW
@@ -76,3 +84,31 @@ class OutConv(nn.Module):
 
     def forward(self, x):
         return self.conv(x)
+
+
+class GridConv(nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels=1):
+        super().__init__()
+        k_size = 5
+        p_size = pad_size(k_size)
+        self.h_conv = nn.Conv2d(in_channels, hidden_channels, kernel_size=k_size, padding=p_size)
+        self.v_conv = nn.Conv2d(in_channels, hidden_channels, kernel_size=k_size, padding=p_size)
+        self.mask_conv = nn.Conv2d(in_channels, hidden_channels, kernel_size=k_size, padding=p_size)
+        self.final_conv = nn.Conv2d(hidden_channels*3, out_channels, kernel_size=k_size, padding=p_size)
+
+        self.h_pool = nn.AdaptiveAvgPool2d((1, None))
+        self.v_pool = nn.AdaptiveAvgPool2d((None, 1))
+
+    def forward(self, x):
+        v_x = self.v_conv(x)
+        h_x = self.h_conv(x)
+        mask_x = self.mask_conv(x)
+        h, w = mask_x.shape[-2:]
+
+        v_x = self.v_pool(v_x).repeat(1, 1, 1, w)
+        h_x = self.h_pool(h_x).repeat(1, 1, h, 1)
+
+        x = torch.cat([mask_x, h_x, v_x], 1)
+        x = self.final_conv(x)
+
+        return x

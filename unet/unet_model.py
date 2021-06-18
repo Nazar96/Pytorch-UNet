@@ -48,6 +48,8 @@ class CustomUNet(pl.LightningModule):
             loss: str = 'bce',
             bilinear: bool = False,
             learning_rate: float = 0.01,
+            grid_output: bool = False,
+            grid_hidden_channels: int = 4,
     ):
         super().__init__()
         self.num_channels = num_channels
@@ -57,10 +59,14 @@ class CustomUNet(pl.LightningModule):
         self.filters = filters
         self.learning_rate = learning_rate
         self.loss_name = loss
+        self.grid_output = grid_output
 
         self.inc = DoubleConv(self.num_channels, self.filters)
-        self.outc = OutConv(self.filters, self.num_classes)
         self.output_activation = nn.Sigmoid()
+        if grid_output:
+            self.outc = GridConv(self.filters, grid_hidden_channels, self.num_classes)
+        else:
+            self.outc = OutConv(self.filters, self.num_classes)
 
         self.down_list = nn.ModuleList()
         self.up_list = nn.ModuleList()
