@@ -91,6 +91,7 @@ class GridConv(nn.Module):
         super().__init__()
         k_size = 5
         p_size = pad_size(k_size)
+        self.act = nn.ReLU()
         self.h_conv = nn.Conv2d(in_channels, hidden_channels, kernel_size=k_size, padding=p_size)
         self.v_conv = nn.Conv2d(in_channels, hidden_channels, kernel_size=k_size, padding=p_size)
         self.mask_conv = nn.Conv2d(in_channels, hidden_channels, kernel_size=k_size, padding=p_size)
@@ -100,16 +101,16 @@ class GridConv(nn.Module):
         self.v_pool = nn.AdaptiveAvgPool2d((None, 1))
 
     def forward(self, x):
-        v_x = self.v_conv(x)
-        h_x = self.h_conv(x)
-        mask_x = self.mask_conv(x)
+        v_x = self.act(self.v_conv(x))
+        h_x = self.act(self.h_conv(x))
+        mask_x = self.act(self.mask_conv(x))
         h, w = mask_x.shape[-2:]
 
         v_x = self.v_pool(v_x).repeat(1, 1, 1, w)
         h_x = self.h_pool(h_x).repeat(1, 1, h, 1)
 
         x = torch.cat([mask_x, h_x, v_x], 1)
-        x = self.final_conv(x)
+        x = self.act(self.final_conv(x))
 
         return x
 

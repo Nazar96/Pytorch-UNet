@@ -76,7 +76,7 @@ class CarvanaDataset(BasicDataset):
 
 class TableMaskDataset(Dataset):
     def __init__(self, img_dir, mask_dir, background_dir=None, labels=None, transform=None, background_transform=None,
-                 back_labels=None, back_proba=0.5, empty_proba=0.05):
+                 back_labels=None, back_proba=0.5, empty_proba=0.0):
         self.img_labels = labels
         self.img_dir = img_dir
         self.mask_dir = mask_dir
