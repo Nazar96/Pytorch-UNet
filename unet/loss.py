@@ -52,6 +52,16 @@ def iou_bce_loss(inputs, targets, smooth=1):
     return result
 
 
+def iou_mse_loss(inputs, targets, smooth=1):
+    inputs = inputs.view(-1)
+    targets = targets.view(-1)
+
+    IOU = iou_loss(inputs, targets, smooth)
+    MSE = F.mse_loss(inputs, targets, reduction='mean')
+    result = IOU + MSE
+    return result
+
+
 supported_loss = {
     'bce': F.binary_cross_entropy,
     'mse': F.mse_loss,
@@ -60,4 +70,5 @@ supported_loss = {
     'dice': dice_loss,
     'iou': iou_loss,
     'iou_bce': iou_bce_loss,
+    'iou_mse': iou_mse_loss,
 }
