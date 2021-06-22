@@ -148,3 +148,4 @@ class CustomUNet(pl.LightningModule):
             'frequency': 1}
 
         return [optimizer], [lr_scheduler]
+

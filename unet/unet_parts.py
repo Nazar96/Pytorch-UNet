@@ -14,6 +14,15 @@ def pad_size(f, w=None, s=1):
     return res
 
 
+def pad_like(x, target):
+    diffY = target.size()[2] - x.size()[2]
+    diffX = target.size()[3] - x.size()[3]
+
+    res = F.pad(x, [diffX // 2, diffX - diffX // 2,
+                    diffY // 2, diffY - diffY // 2])
+    return res
+
+
 class DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""
 
@@ -45,7 +54,8 @@ class Down(nn.Module):
         )
 
     def forward(self, x):
-        return self.maxpool_conv(x)
+        x = self.maxpool_conv(x)
+        return x
 
 
 class Up(nn.Module):
@@ -111,9 +121,10 @@ class GridUp(nn.Module):
         self.act = nn.ReLU()
 
     def forward(self, x1, x2):
+        x1 = self.up(x1)
+        x1 = pad_like(x1, x2)
         h, w = x2.shape[-2:]
 
-        x1 = self.up(x1)
         v_x = self.v_conv(x1)
         h_x = self.h_conv(x1)
         mask_x = self.mask_conv(x1)
