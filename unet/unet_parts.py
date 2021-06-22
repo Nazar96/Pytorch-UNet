@@ -17,15 +17,15 @@ def pad_size(f, w=None, s=1):
 class DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""
 
-    def __init__(self, in_channels, out_channels, mid_channels=None):
+    def __init__(self, in_channels, out_channels, mid_channels=None, k_size=3, padding=1):
         super().__init__()
         if not mid_channels:
             mid_channels = out_channels
         self.double_conv = nn.Sequential(
-            nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels, mid_channels, kernel_size=k_size, padding=padding),
             nn.BatchNorm2d(mid_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1),
+            nn.Conv2d(mid_channels, out_channels, kernel_size=k_size, padding=padding),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
@@ -59,7 +59,7 @@ class Up(nn.Module):
             self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
             self.conv = DoubleConv(in_channels, out_channels, in_channels // 2)
         else:
-            self.up = nn.ConvTranspose2d(in_channels , in_channels // 2, kernel_size=2, stride=2)
+            self.up = nn.ConvTranspose2d(in_channels, in_channels // 2, kernel_size=2, stride=2)
             self.conv = DoubleConv(in_channels, out_channels)
 
     def forward(self, x1, x2):
@@ -99,10 +99,14 @@ class GridUp(nn.Module):
         self.mask_conv = nn.Conv2d(in_channels, out_channels, kernel_size=k_size, padding=p_size)
         self.final_conv = nn.Conv2d(out_channels * 4, out_channels, kernel_size=k_size, padding=p_size)
 
-        self.up = nn.Upsample(scale_factor=2, mode='nearest')
+        # self.up = nn.Upsample(scale_factor=2, mode='nearest')
+        self.up = nn.ConvTranspose2d(in_channels, in_channels, 2, 2)
 
         self.h_pool = nn.AdaptiveAvgPool2d((1, None))
         self.v_pool = nn.AdaptiveAvgPool2d((None, 1))
+
+        self.batch_1 = nn.BatchNorm2d(out_channels * 4)
+        self.batch_2 = nn.BatchNorm2d(out_channels)
 
         self.act = nn.ReLU()
 
@@ -118,7 +122,11 @@ class GridUp(nn.Module):
         h_x = self.h_pool(h_x).repeat(1, 1, h, 1)
 
         x = torch.cat([mask_x, h_x, v_x, x2], 1)
+        x = self.batch_1(x)
         x = self.act(x)
+
         x = self.final_conv(x)
+        x = self.batch_2(x)
+        x = self.act(x)
 
         return x
