@@ -75,7 +75,7 @@ class CustomUNet(pl.LightningModule):
         in_channels = self.filters
         for i in range(self.num_layers):
             down = Down(in_channels, in_channels * factor)
-            up = Up(in_channels * factor, in_channels, self.bilinear)
+            up = GridUp(in_channels * factor, in_channels, self.bilinear)
 
             self.down_list.append(down)
             self.up_list.append(up)
