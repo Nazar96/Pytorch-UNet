@@ -114,9 +114,9 @@ class TableMaskDataset(Dataset):
             image = self._add_background(image)
 
         image = self._postproc(image)
-        mask = self._postproc(mask)
+        mask = 1 - self._postproc(mask)
 
-        return (image, mask)
+        return image, mask
 
     @staticmethod
     def _postproc(x):
