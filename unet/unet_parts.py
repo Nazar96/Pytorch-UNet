@@ -99,8 +99,8 @@ class GridUp(nn.Module):
         self.mask_conv = nn.Conv2d(in_channels, out_channels, kernel_size=k_size, padding=p_size)
         self.final_conv = nn.Conv2d(out_channels * 4, out_channels, kernel_size=k_size, padding=p_size)
 
-        # self.up = nn.Upsample(scale_factor=2, mode='nearest')
-        self.up = nn.ConvTranspose2d(in_channels, in_channels, 2, 2)
+        self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        # self.up = nn.ConvTranspose2d(in_channels, in_channels, 2, 2)
 
         self.h_pool = nn.AdaptiveAvgPool2d((1, None))
         self.v_pool = nn.AdaptiveAvgPool2d((None, 1))
