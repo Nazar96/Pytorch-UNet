@@ -80,23 +80,25 @@ class CustomUNet(pl.LightningModule):
         self.up_list = self.up_list[::-1]
 
     def conv(self, x):
-        emb_list = []
+        emb_down_list = []
         x = self.inc(x)
         for down in self.down_list:
-            emb_list.append(x)
+            emb_down_list.append(x)
             x = down(x)
-        emb_list = emb_list[::-1]
-        return x, emb_list
+        emb_down_list = emb_down_list[::-1]
+        return x, emb_down_list
 
-    def deconv(self, x, emb_list):
-        for up, emb in zip(self.up_list, emb_list):
+    def deconv(self, x, emb_down_list):
+        emb_up_list = []
+        for up, emb in zip(self.up_list, emb_down_list):
+            emb_up_list.append(x)
             x = up(x, emb)
-        logits = self.outc(x)
-        return logits
+        return x, emb_up_list
 
     def forward(self, x):
         emb, emb_list = self.conv(x)
-        logits = self.deconv(emb, emb_list)
+        emb, emb_list = self.deconv(emb, emb_list)
+        logits = self.outc(emb)
         pred = self.output_activation(logits)
         return pred
 
