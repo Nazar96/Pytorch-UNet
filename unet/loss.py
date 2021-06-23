@@ -63,7 +63,7 @@ def iou_mse_loss(inputs, targets, smooth=1):
     return result
 
 
-def focal_loss(self, inputs, targets, alpha=0.8, gamma=2, smooth=1):
+def focal_loss(inputs, targets, alpha=0.8, gamma=2, smooth=1):
     # flatten label and prediction tensors
     inputs = inputs.view(-1)
     targets = targets.view(-1)

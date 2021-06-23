@@ -105,7 +105,7 @@ class CustomUNet(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         emb, emb_list = self.conv(x)
-        logits = self.deconv(emb, emb_list)
+        logits, _ = self.deconv(emb, emb_list)
         y_hat = self.output_activation(logits)
         loss = supported_loss[self.loss_name](y_hat, y)
         self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
@@ -122,7 +122,7 @@ class CustomUNet(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         emb, emb_list = self.conv(x)
-        logits = self.deconv(emb, emb_list)
+        logits, _ = self.deconv(emb, emb_list)
         y_hat = self.output_activation(logits)
         loss = supported_loss[self.loss_name](y_hat, y)
         self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
