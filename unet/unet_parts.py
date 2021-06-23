@@ -96,10 +96,42 @@ class OutConv(nn.Module):
         return self.conv(x)
 
 
+class OutDoubleConv(nn.Module):
+        def __init__(self, in_channels, hidden_channels, out_channels, dropaut_proba=0.0, bilinear=True):
+            super().__init__()
+
+            k_size = 5
+            p_size = pad_size(k_size)
+            self.conv_1 = nn.Conv2d(in_channels, hidden_channels, kernel_size=k_size, padding=p_size)
+            self.conv_2 = nn.Conv2d(hidden_channels, hidden_channels, kernel_size=k_size, padding=p_size)
+            self.conv_final = nn.Conv2d(hidden_channels, out_channels, kernel_size=k_size, padding=p_size)
+
+            self.batch_1 = nn.BatchNorm2d(hidden_channels)
+            self.batch_2 = nn.BatchNorm2d(hidden_channels)
+
+            self.act = nn.ReLU()
+
+            self.drop = nn.Dropout(dropaut_proba)
+
+        def forward(self, x):
+            x = self.conv_1(x)
+            x = self.batch_1(x)
+            x = self.act(x)
+            x = self.drop(x)
+
+            x = self.conv_2(x)
+            x = self.batch_2(x)
+            x = self.act(x)
+            x = self.drop(x)
+
+            x = self.conv_final(x)
+            return x
+
+
 class GridUp(nn.Module):
     """Upscaling then double conv"""
 
-    def __init__(self, in_channels, out_channels, bilinear=True):
+    def __init__(self, in_channels, out_channels, dropaut_proba=0.0, bilinear=True):
         super().__init__()
 
         k_size = 5
@@ -120,6 +152,8 @@ class GridUp(nn.Module):
 
         self.act = nn.ReLU()
 
+        self.drop = nn.Dropout(dropaut_proba)
+
     def forward(self, x1, x2):
         x1 = self.up(x1)
         x1 = pad_like(x1, x2)
@@ -135,6 +169,7 @@ class GridUp(nn.Module):
         x = torch.cat([mask_x, h_x, v_x, x2], 1)
         x = self.batch_1(x)
         x = self.act(x)
+        x = self.drop(x)
 
         x = self.final_conv(x)
         x = self.batch_2(x)

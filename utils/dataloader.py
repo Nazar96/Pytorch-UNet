@@ -11,13 +11,13 @@ val_size = 50
 batch_size = 16
 
 pixel_aug = [
-    A.Perspective(p=0.25),
+    # A.Perspective(p=0.25),
     # A.GlassBlur(p=0.1),
     A.RandomGridShuffle(p=0.15),
     A.RandomRain(rain_type='heavy', p=0.15),
     A.RandomFog(fog_coef_lower=0.1, fog_coef_upper=0.5, p=0.15),
     A.RandomSunFlare(src_radius=200, num_flare_circles_lower=1, p=0.25),
-    A.OpticalDistortion(distort_limit=0.15, shift_limit=0, p=0.25),
+    # A.OpticalDistortion(distort_limit=0.15, shift_limit=0, p=0.25),
 ]
 
 pad_aug = [
@@ -30,11 +30,13 @@ pad_aug = [
             border_mode=cv2.BORDER_CONSTANT,
             value=(255, 255, 255),
             mask_value=(255, 255, 255),
+            p=0.8,
         ),
         A.PadIfNeeded(
             min_height=img_pad_size,
             min_width=img_pad_size,
             border_mode=cv2.BORDER_REFLECT,
+            p=0.2
         )], p=1,
     ),
     A.RandomCrop(width=img_size, height=img_size, p=1),
@@ -78,12 +80,12 @@ def get_dataloader(
     train_ds = TableMaskDataset(
         img_path, mask_path, background_path, train_labels,
         transform=train_alb_transform, background_transform=back_alb_transform, back_labels=backgrounds,
-        back_proba=0.5,
+        back_proba=0.25,
     )
     val_ds = TableMaskDataset(
         img_path, mask_path, background_path, val_labels,
         transform=val_alb_transform, background_transform=back_alb_transform, back_labels=backgrounds,
-        back_proba=0.5,
+        back_proba=0.25,
     )
 
     train_dataloader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
