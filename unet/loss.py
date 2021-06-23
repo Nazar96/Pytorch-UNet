@@ -1,4 +1,5 @@
 from torch.nn import functional as F
+import torch
 
 
 def dice_loss(inputs, targets, smooth=1):
@@ -62,6 +63,19 @@ def iou_mse_loss(inputs, targets, smooth=1):
     return result
 
 
+def focal_loss(self, inputs, targets, alpha=0.8, gamma=2, smooth=1):
+    # flatten label and prediction tensors
+    inputs = inputs.view(-1)
+    targets = targets.view(-1)
+
+    # first compute binary cross-entropy
+    BCE = F.binary_cross_entropy(inputs, targets, reduction='mean')
+    BCE_EXP = torch.exp(-BCE)
+    focal_loss = alpha * (1 - BCE_EXP) ** gamma * BCE
+
+    return focal_loss
+
+
 supported_loss = {
     'bce': F.binary_cross_entropy,
     'mse': F.mse_loss,
@@ -71,4 +85,5 @@ supported_loss = {
     'iou': iou_loss,
     'iou_bce': iou_bce_loss,
     'iou_mse': iou_mse_loss,
+    'focal': focal_loss,
 }

@@ -48,7 +48,7 @@ class CustomUNet(pl.LightningModule):
             loss: str = 'bce',
             bilinear: bool = False,
             learning_rate: float = 0.01,
-            dropout_proba: float = 0.2,
+            dropout_proba: float = 0.0,
             hidden_channels: int = 4,
     ):
         super().__init__()
