@@ -55,7 +55,7 @@ back_aug = [
 affin_aug = [
     A.HorizontalFlip(p=0.5),
     A.VerticalFlip(p=0.5),
-    A.ShiftScaleRotate(0.5, 0.5, rotate_limit=0.2, p=0.5),
+    A.ShiftScaleRotate(0.2, 0.5, rotate_limit=0.2, p=0.5),
     A.RandomRotate90(p=0.5),
 ]
 
