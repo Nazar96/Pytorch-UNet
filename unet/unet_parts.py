@@ -144,8 +144,8 @@ class GridUp(nn.Module):
         self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         # self.up = nn.ConvTranspose2d(in_channels, in_channels, 2, 2)
 
-        self.h_pool = nn.AdaptiveAvgPool2d((1, None))
-        self.v_pool = nn.AdaptiveAvgPool2d((None, 1))
+        self.h_pool = nn.AdaptiveMaxPool2d((1, None))
+        self.v_pool = nn.AdaptiveMaxPool2d((None, 1))
 
         self.batch_1 = nn.BatchNorm2d(out_channels * 4)
         self.batch_2 = nn.BatchNorm2d(out_channels)

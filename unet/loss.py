@@ -76,6 +76,13 @@ def focal_loss(inputs, targets, alpha=0.8, gamma=2, smooth=1):
     return focal_loss
 
 
+def axis_std(tensor):
+    std_x = tensor.mean(axis=2).std(axis=-1).mean()
+    std_y = tensor.mean(axis=3).std(axis=-1).mean()
+    res = (std_x + std_y)/2
+    return res
+
+
 supported_loss = {
     'bce': F.binary_cross_entropy,
     'mse': F.mse_loss,

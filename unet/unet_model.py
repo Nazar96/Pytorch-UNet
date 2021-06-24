@@ -2,7 +2,7 @@
 
 from .unet_parts import *
 import pytorch_lightning as pl
-from .loss import supported_loss
+from .loss import supported_loss, axis_std
 
 
 class UNet(nn.Module):
@@ -104,11 +104,11 @@ class CustomUNet(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         x, y = batch
-        emb, emb_up_list = self.conv(x)
-        emb, _ = self.deconv(emb, emb_up_list)
+        emb, emb_down_list = self.conv(x)
+        emb, _ = self.deconv(emb, emb_down_list)
         logits = self.outc(emb)
         y_hat = self.output_activation(logits)
-        loss = supported_loss[self.loss_name](y_hat, y)
+        loss = supported_loss[self.loss_name](y_hat, y) - axis_std(y_hat)/2
         self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
         tensorboard_logs = {
             'train_loss': loss,
@@ -122,8 +122,8 @@ class CustomUNet(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
-        emb, emb_up_list = self.conv(x)
-        emb, _ = self.deconv(emb, emb_up_list)
+        emb, emb_down_list = self.conv(x)
+        emb, _ = self.deconv(emb, emb_down_list)
         logits = self.outc(emb)
         y_hat = self.output_activation(logits)
         loss = supported_loss[self.loss_name](y_hat, y)
