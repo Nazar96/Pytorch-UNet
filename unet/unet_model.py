@@ -115,7 +115,7 @@ class CustomUNet(pl.LightningModule):
             supported_loss[self.loss_name](y_hat, y)\
             - axis_std(y_hat) * self.axis_reg_coef\
             + axis_proj_loss(y_hat, y) * self.axis_proj_loss_coef\
-            + y_hat.mean * self.sum_reg_coef
+            + y_hat.mean() * self.sum_reg_coef
 
         self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
         tensorboard_logs = {
