@@ -83,6 +83,15 @@ def axis_std(tensor):
     return res
 
 
+def axis_proj_loss(inputs, targets):
+    input_h, input_w = inputs.mean(axis=2).view(-1), inputs.mean(axis=3).view(-1)
+    target_h, target_w = targets.mean(axis=2).view(-1), targets.mean(axis=3).view(-1)
+    h_loss = F.mse_loss(input_h, target_h)
+    w_loss = F.mse_loss(input_w, target_w)
+    res = h_loss + w_loss
+    return res
+
+
 supported_loss = {
     'bce': F.binary_cross_entropy,
     'mse': F.mse_loss,

@@ -2,7 +2,7 @@
 
 from .unet_parts import *
 import pytorch_lightning as pl
-from .loss import supported_loss, axis_std
+from .loss import supported_loss, axis_std, axis_proj_loss
 
 
 class UNet(nn.Module):
@@ -59,7 +59,9 @@ class CustomUNet(pl.LightningModule):
         self.filters = filters
         self.learning_rate = learning_rate
         self.loss_name = loss
-        self.axis_reg_coef = 1
+        self.axis_std_reg_coef = 1
+        self.sum_reg_coef = 1
+        self.axis_proj_loss_coef = 1
 
         self.inc = DoubleConv(self.num_channels, self.filters)
         self.output_activation = nn.Sigmoid()
@@ -109,7 +111,12 @@ class CustomUNet(pl.LightningModule):
         emb, _ = self.deconv(emb, emb_down_list)
         logits = self.outc(emb)
         y_hat = self.output_activation(logits)
-        loss = supported_loss[self.loss_name](y_hat, y) - axis_std(y_hat)*self.axis_reg_coef
+        loss = \
+            supported_loss[self.loss_name](y_hat, y)\
+            - axis_std(y_hat) * self.axis_reg_coef\
+            + axis_proj_loss(y_hat, y) * self.axis_proj_loss_coef\
+            + y_hat.mean * self.sum_reg_coef
+
         self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
         tensorboard_logs = {
             'train_loss': loss,
