@@ -131,7 +131,7 @@ class OutDoubleConv(nn.Module):
 class GridUp(nn.Module):
     """Upscaling then double conv"""
 
-    def __init__(self, in_channels, out_channels, dropaut_proba=0.0, bilinear=True):
+    def __init__(self, in_channels, out_channels, dropout_proba=0.0, bilinear=True):
         super().__init__()
 
         k_size = 5
@@ -152,7 +152,7 @@ class GridUp(nn.Module):
 
         self.act = nn.ReLU()
 
-        self.drop = nn.Dropout(dropaut_proba)
+        self.drop = nn.Dropout(dropout_proba)
 
     def forward(self, x1, x2):
         x1 = self.up(x1)

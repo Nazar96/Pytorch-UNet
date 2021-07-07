@@ -50,6 +50,7 @@ class CustomUNet(pl.LightningModule):
             learning_rate: float = 0.01,
             dropout_proba: float = 0.0,
             hidden_channels: int = 4,
+            table_unet: bool = False,
     ):
         super().__init__()
         self.num_channels = num_channels
@@ -65,8 +66,12 @@ class CustomUNet(pl.LightningModule):
 
         self.inc = DoubleConv(self.num_channels, self.filters)
         self.output_activation = nn.Sigmoid()
-        # self.outc = OutConv(self.filters, self.num_classes)
-        self.outc = OutDoubleConv(self.filters, hidden_channels, self.num_classes, dropout_proba)
+        if table_unet:
+            _Up = GridUp
+            self.outc = OutDoubleConv(self.filters, hidden_channels, self.num_classes, dropout_proba)
+        else:
+            _Up = Up
+            self.outc = OutConv(self.filters, hidden_channels)
 
         self.down_list = nn.ModuleList()
         self.up_list = nn.ModuleList()
@@ -75,7 +80,7 @@ class CustomUNet(pl.LightningModule):
         in_channels = self.filters
         for i in range(self.num_layers):
             down = Down(in_channels, in_channels * factor)
-            up = GridUp(in_channels * factor, in_channels, dropout_proba, self.bilinear)
+            up = _Up(in_channels * factor, in_channels, dropout_proba=dropout_proba, bilinear=self.bilinear)
 
             self.down_list.append(down)
             self.up_list.append(up)
